@@ -98,7 +98,7 @@ defaultModel : Model msg
 defaultModel =
   let
     map =
-      { tileServer = "http://a.tile.osm.org/{z}/{x}/{y}.png"
+      { tileServer = "https://a.tile.osm.org/{z}/{x}/{y}.png"
       , zoom = 10
       , center = LatLng.sydney
       , width = 600

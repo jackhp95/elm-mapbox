@@ -3,7 +3,7 @@
     "name": "jackhp95/elm-mapbox",
     "summary": "An Elm library for interactive maps",
     "license": "BSD-3-Clause",
-    "version": "1.0.0",
+    "version": "1.0.1",
     "exposed-modules": [
         "Maps",
         "Maps.Geo",
