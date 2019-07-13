@@ -10,7 +10,6 @@ module Maps.Marker exposing
 
 # Create a marker
 
-@docs create
 @docs createCustom
 
 -}
