@@ -17,7 +17,7 @@ module Maps exposing
 
 You can use the functions below to display a map.
 
-    import Html exposing (program)
+    import Html.Styled as Html exposing (program)
     import Maps
 
     main =
@@ -51,7 +51,7 @@ Use the functions above to maniuplate and extract information from them.
 
 -}
 
-import Html exposing (Html)
+import Html.Styled as Html exposing (Html)
 import Maps.Internal.Maps as Maps
 import Maps.Internal.OpaqueTypes as OpaqueTypes exposing (Model(..), opaqueModel, transparentMap)
 import Maps.Map exposing (Map)
@@ -148,8 +148,8 @@ view (Model model) =
 {-| Transforms the Maps HTML view into an arbitrary HTML view.
 Requires a function that can transform `Maps.Msg`s into `msg`s.
 
-    import Html
-    import Html.Event exposing (onClick)
+    import Html.Styled as Html
+    import Html.Styled.Event exposing (onClick)
     import Maps
 
     type MyMsg = Click | MapsMsg Maps.Msg

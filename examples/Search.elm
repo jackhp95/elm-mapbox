@@ -1,8 +1,8 @@
 module Search exposing (Msg(..), apiKey, geocode, getFirstBounds, init, main, subscriptions, update, view)
 
 import Geocoding
-import Html exposing (program)
-import Html.Events exposing (onInput)
+import Html.Styled as Html exposing (program)
+import Html.Styled.Events as E exposing (onInput)
 import Http
 import Maps exposing (Msg)
 import Maps.Geo exposing (Bounds)

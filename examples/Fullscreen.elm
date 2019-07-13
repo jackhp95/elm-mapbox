@@ -3,8 +3,8 @@ module FullScreen exposing (Msg(..), defaultSize, init, main, subscriptions, upd
 import Browser
 import Browser.Dom
 import Browser.Events
-import Html
-import Html.Events exposing (onInput)
+import Html.Styled as Html
+import Html.Styled.Events as E exposing (onInput)
 import Maps
 import Maps.Map as Map
 import Task

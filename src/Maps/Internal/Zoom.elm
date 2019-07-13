@@ -4,8 +4,8 @@ module Maps.Internal.Zoom exposing
     , fromPinch
     )
 
-import Html
-import Html.Events exposing (on)
+import Html.Styled as Html
+import Html.Styled.Events as E exposing (on)
 import Json.Decode as Json
 import Maps.Internal.Pinch as Pinch exposing (Pinch)
 import Maps.Internal.Screen as Screen exposing (ZoomLevel)
@@ -32,32 +32,32 @@ fromPinch mapWidth mapHeight pinch =
 
 events : EventOptions msg -> ZoomLevel -> List (Html.Attribute msg)
 events { zoom, pinchStart, pinchTo, pinchStop } mapZoom =
+    let
+        customEventOn str x =
+            Json.map (\v -> { message = v, preventDefault = True, stopPropagation = False }) x
+                |> E.custom str
+    in
     [ -- Mouse
-      Html.Events.custom "dblclick" <|
-        Json.map (\v -> { message = v, preventDefault = True, stopPropagation = False }) <|
-            Json.map (\offset -> zoom offset 1) <|
-                Screen.decodeOffset
+      Screen.decodeOffset
+        |> Json.map (\offset -> zoom offset 1)
+        |> customEventOn "dblclick"
     , --Mouse
-      Html.Events.custom "wheel" <|
-        Json.map (\v -> { message = v, preventDefault = True, stopPropagation = False }) <|
-            Json.map2
-                zoom
-                Screen.decodeOffset
-                Screen.decodeZoom
+      Json.map2
+        zoom
+        Screen.decodeOffset
+        Screen.decodeZoom
+        |> customEventOn "wheel"
     , -- Mobile
-      Html.Events.custom "touchstart" <|
-        Json.map (\v -> { message = v, preventDefault = True, stopPropagation = False }) <|
-            Json.map (Maybe.withDefault pinchStop) <|
-                Json.map (Maybe.map pinchStart) <|
-                    Screen.decodeTwoFingers
+      Screen.decodeTwoFingers
+        |> Json.map (Maybe.map pinchStart)
+        |> Json.map (Maybe.withDefault pinchStop)
+        |> on "touchstart"
     , -- Mobile
-      Html.Events.custom "touchmove" <|
-        Json.map (\v -> { message = v, preventDefault = True, stopPropagation = False }) <|
-            Json.map (Maybe.withDefault pinchStop) <|
-                Json.map (Maybe.map pinchTo) <|
-                    Screen.decodeTwoFingers
+      Screen.decodeTwoFingers
+        |> Json.map (Maybe.map pinchTo)
+        |> Json.map (Maybe.withDefault pinchStop)
+        |> customEventOn "touchmove"
     , -- Mobile
-      Html.Events.custom "touchend" <|
-        Json.map (\v -> { message = v, preventDefault = True, stopPropagation = False }) <|
-            Json.succeed pinchStop
+      Json.succeed pinchStop
+        |> on "touchend"
     ]

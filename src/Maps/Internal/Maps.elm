@@ -15,7 +15,7 @@ module Maps.Internal.Maps exposing
 
 The quickest way to get up and running is to create a map with default options
 
-    import Html exposing (program)
+    import Html.Styled as Html exposing (program)
     import Maps.Internal
 
     main =
@@ -40,10 +40,10 @@ The quickest way to get up and running is to create a map with default options
 
 -}
 
-import Html exposing (Html)
-import Html.Attributes as Attr
-import Html.Events
-import Html.Keyed
+import Html.Styled as Html exposing (Html)
+import Html.Styled.Attributes as Attr
+import Html.Styled.Events as E
+import Html.Styled.Keyed as K
 import Json.Decode as Json
 import List.Extra as List
 import Maps.Internal.Bounds as Bounds exposing (Bounds)
@@ -56,6 +56,7 @@ import Maps.Internal.Screen as Screen exposing (Offset, TwoFingers, ZoomLevel)
 import Maps.Internal.Tile as Tile exposing (Tile)
 import Maps.Internal.Utils exposing (flip)
 import Maps.Internal.Zoom as Zoom
+import Palit as P exposing (..)
 
 
 {-| The map has events for dragging, zooming and setting the bounds displayed by the map.
@@ -192,68 +193,90 @@ subscriptions map =
 {-| -}
 view : Model msg -> Html (Msg msg)
 view ({ map, cache, markers, pinch, drag } as model) =
-    Html.div
-        (List.map (\( p, v ) -> Attr.style p v)
-            [ ( "width", String.fromFloat map.width ++ "px" )
-            , ( "height", String.fromFloat map.height ++ "px" )
-            , ( "-webkit-touch-callout", "none" )
-            , ( "-webkit-user-select", "none" )
-            , ( "-khtml-user-select", "none" )
-            , ( "-moz-user-select", "none" )
-            , ( "-ms-user-select", "none" )
-            , ( "user-select", "none" )
-            , ( "background-color", "#ddd" )
-            ]
-            ++ zoomEvents map.zoom
-        )
-    <|
-        let
-            zoom =
-                Maybe.map (Zoom.fromPinch map.width map.height) pinch
+    let
+        zoom =
+            Maybe.map (Zoom.fromPinch map.width map.height) pinch
 
-            zoomedMap =
-                Maybe.withDefault map <| Maybe.map (\( thiszoom, offset ) -> Map.zoomTo thiszoom offset map) zoom
+        zoomedMap =
+            Maybe.map (\( thiszoom, offset ) -> Map.zoomTo thiszoom offset map) zoom
+                |> Maybe.withDefault map
 
-            transforms =
-                Map.diff zoomedMap map
-        in
-        [ Html.div
-            [ Attr.style "position" "absolute"
-            , Attr.style "width" <| String.fromFloat map.width ++ "px"
-            , Attr.style "height" <| String.fromFloat map.height ++ "px"
-            , Attr.style "overflow" "hidden"
-            , Html.Events.custom "mouseDown" <|
-                Json.map (\v -> { message = v, preventDefault = True, stopPropagation = False }) <|
-                    Json.fail "No interaction"
+        transforms =
+            Map.diff zoomedMap map
+
+        userSelectNone =
+            [ P.style "-webkit-touch-callout" "none"
+            , P.style "-webkit-user-select" "none"
+            , P.style "-khtml-user-select" "none"
+            , P.style "-moz-user-select" "none"
+            , P.style "-ms-user-select" "none"
+            , P.style "user-select" "none"
             ]
-          <|
-            List.map (\cachedMap -> tilesView (Map.diff zoomedMap cachedMap) cachedMap) <|
-                List.reverse <|
-                    cache
-        , Html.div
-            (List.map (\( p, v ) -> Attr.style p v)
-                [ ( "position", "absolute" )
-                , ( "width", String.fromFloat map.width ++ "px" )
-                , ( "height", String.fromFloat map.height ++ "px" )
-                , ( "overflow", "hidden" )
-                ]
-                ++ dragEvents drag
-            )
-            [ tilesView transforms map
-            ]
-        , Html.div
-            (List.map (\( p, v ) -> Attr.style p v)
-                [ ( "position", "absolute" )
-                , ( "width", String.fromFloat map.width ++ "px" )
-                , ( "height", String.fromFloat map.height ++ "px" )
-                , ( "overflow", "hidden" )
-                , ( "pointer-events", "none" )
-                ]
-            )
-          <|
-            List.map (Html.map ExternalMsg) <|
-                List.map (Marker.view zoomedMap) <|
-                    markers
+
+        toPx =
+            String.fromFloat >> (\n -> n ++ "px")
+
+        containerView =
+            Html.figure
+                ([ palit
+                    [ reg userSelectNone
+                    , bg <| co 0.2 black
+                    , P.style "height" (toPx map.height)
+                    , P.style "width" (toPx map.width)
+                    ]
+                 ]
+                    ++ zoomEvents map.zoom
+                )
+
+        markersView =
+            markers
+                |> List.map (Marker.view zoomedMap >> Html.map ExternalMsg)
+                |> Html.menu
+                    [ palit
+                        [ P.style "position" "absolute"
+                        , P.style "width" <| toPx map.width
+                        , P.style "height" <| toPx map.height
+                        , P.style "overflow" "hidden"
+                        , P.style "pointer-events" "none"
+                        , reg userSelectNone
+                        ]
+                    ]
+
+        cacheView =
+            cache
+                |> List.foldl (\cachedMap -> (++) (tilesView (Map.diff zoomedMap cachedMap) cachedMap)) []
+                |> K.node "div"
+                    [ Attr.id "cache"
+                    , palit
+                        [ absolute
+                        , P.style "width" <| toPx map.width
+                        , P.style "height" <| toPx map.height
+                        , overflowHidden
+                        ]
+                    , Json.fail "No interaction"
+                        |> Json.map (\v -> { message = v, preventDefault = True, stopPropagation = False })
+                        |> E.custom "mouseDown"
+                    ]
+
+        mapTilesView =
+            tilesView transforms map
+                |> K.node "div"
+                    ([ Attr.id "tiles"
+                     , palit
+                        [ absolute
+                        , P.style "width" <| toPx map.width
+                        , P.style "height" <| toPx map.height
+                        , overflowHidden
+                        , reg userSelectNone
+                        ]
+                     ]
+                        ++ dragEvents drag
+                    )
+    in
+    containerView
+        [ cacheView
+        , mapTilesView
+        , markersView
         ]
 
 
@@ -273,20 +296,38 @@ mapView wrapMsg html =
     Html.map mapMsg html
 
 
-tilesView : List Map.Transformation -> Map -> Html (Msg msg)
+tilesView : List Map.Transformation -> Map -> List ( String, Html msg )
 tilesView transforms map =
-    Html.Keyed.node "div"
-        (List.map (\( p, v ) -> Attr.style p v) <| Map.transformationStyle map.width map.height <| transforms)
-    <|
-        List.map (\(( url, offset ) as tile) -> ( url, Tile.view map.tileSize tile )) <|
-            Map.tiles map
+    Map.tiles map
+        |> List.foldl
+            (\tile -> (::) ( Tuple.first tile, Tile.view map.tileSize tile ))
+            []
+
+
+
+-- |> "div"
+--     (transforms
+--         |> Map.transformationStyle map.width map.height
+--         |> List.map (\( p, v ) -> Attr.style p v)
+--     )
 
 
 zoomEvents : ZoomLevel -> List (Html.Attribute (Msg msg))
 zoomEvents zoom =
-    Zoom.events { zoom = Zoom, pinchStart = PinchStart, pinchTo = PinchTo, pinchStop = PinchStop } zoom
+    Zoom.events
+        { zoom = Zoom
+        , pinchStart = PinchStart
+        , pinchTo = PinchTo
+        , pinchStop = PinchStop
+        }
+        zoom
 
 
 dragEvents : Maybe Drag -> List (Html.Attribute (Msg msg))
 dragEvents drag =
-    Drag.events { dragStart = DragStart, dragTo = DragTo, dragStop = DragStop } drag
+    Drag.events
+        { dragStart = DragStart
+        , dragTo = DragTo
+        , dragStop = DragStop
+        }
+        drag

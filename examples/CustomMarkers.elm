@@ -2,9 +2,9 @@ module CustomMarkers exposing (Model, Msg(..), SportsGround, ballarat, getSports
 
 import Browser
 import GeoJson exposing (GeoJson, Geometry(..))
-import Html
-import Html.Attributes as Attr
-import Html.Events exposing (onClick)
+import Html.Styled as Html
+import Html.Styled.Attributes as Attr
+import Html.Styled.Events as E exposing (onClick)
 import Http
 import Json.Decode as Json
 import Maps

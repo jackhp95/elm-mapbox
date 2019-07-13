@@ -7,12 +7,12 @@ module Maps.Internal.Tile exposing
     , view
     )
 
-import Html exposing (Html)
-import Html.Attributes as Attr
+import Html.Styled as Html exposing (Html)
+import Html.Styled.Attributes as Attr
 import Maps.Internal.LatLng as LatLng exposing (LatLng)
 import Maps.Internal.Utils exposing (sinh, wrap)
 import Regex
-
+import Palit as P exposing (..)
 
 type alias Url =
     String
@@ -88,13 +88,17 @@ formatInt replace number =
 
 view : Float -> Tile -> Html msg
 view tileSize ( thisUrl, offset ) =
+    let 
+        height = String.fromFloat offset.y ++ "px"
+        width = String.fromFloat offset.x ++ "px"
+    in
     Html.img
         [ Attr.src thisUrl
-        , Attr.style "position" "absolute"
-        , Attr.style "left" <| String.fromFloat offset.x ++ "px"
-        , Attr.style "top" <| String.fromFloat offset.y ++ "px"
-        , Attr.style "width" <| String.fromFloat tileSize ++ "px"
-        , Attr.style "height" <| String.fromFloat tileSize ++ "px"
-        , Attr.style "background-color" <| "rgba(0,0,0, 0)"
+        , palit [absolute 
+        -- , P.style "left" <| String.fromFloat offset.x ++ "px"
+        -- , P.style "top" <| String.fromFloat offset.y ++ "px"
+        , P.style "transform" <| String.join " " ["translate3D(", width, ",", height, ",",  "0", ")"]
+        , P.style "width" <| String.fromFloat tileSize ++ "px"
+        , P.style "height" <| String.fromFloat tileSize ++ "px"]
         ]
         []

@@ -1,7 +1,7 @@
 module Markers exposing (attractions, init, main, sydney)
 
 import Browser
-import Html
+import Html.Styled as Html
 import Maps
 import Maps.Geo
 import Maps.Map as Map

@@ -28,6 +28,6 @@ flip f b a =
 
 cartesianMap : (a -> b -> c) -> List a -> List b -> List (List c)
 cartesianMap function rows columns =
-    flip function
-        |> flip List.map columns
-        |> List.map (flip List.map rows)
+    (\b a -> function a b)
+        |> (\a -> List.map a columns)
+        |> List.map (\a -> List.map a rows)

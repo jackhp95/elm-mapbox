@@ -157,7 +157,7 @@ decodeZoom =
 
 scrollToZoom : Float -> ZoomLevel
 scrollToZoom scroll =
-    negate (scroll * 0.02)
+    negate (scroll * 0.01)
 
 
 {-| Decodes a touch event into a zoom level and movement offset.
